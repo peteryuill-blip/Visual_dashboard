@@ -41,7 +41,7 @@ export default function App() {
 
   const loadPrompt = async () => {
     try {
-      const res = await fetch('/prompts/CY_V6_1_VISUAL_ANALYSIS_ENGINE.md');
+      const res = await fetch('./prompts/CY_V6_1_VISUAL_ANALYSIS_ENGINE.md');
       if (!res.ok) throw new Error("Failed to load prompt");
       const text = await res.text();
       setSystemPrompt(text);
@@ -73,12 +73,9 @@ export default function App() {
       const data = await parseCSV(file);
       setCsvData(data);
 
-      // Create a map for O(1) lookups instead of O(n) Array.find
-      const dataMap = new Map(data.map(r => [r.t_code, r]));
-
       setImages(prev => prev.map(img => {
         if (img.tCode && data) {
-          const row = dataMap.get(img.tCode);
+          const row = data.find(r => r.t_code === img.tCode);
           if (row) {
             return { ...img, metadata: row, status: 'READY' };
           } else {
