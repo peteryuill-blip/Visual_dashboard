@@ -73,9 +73,12 @@ export default function App() {
       const data = await parseCSV(file);
       setCsvData(data);
 
+      // Create a map for O(1) lookups instead of O(n) Array.find
+      const dataMap = new Map(data.map(r => [r.t_code, r]));
+
       setImages(prev => prev.map(img => {
         if (img.tCode && data) {
-          const row = data.find(r => r.t_code === img.tCode);
+          const row = dataMap.get(img.tCode);
           if (row) {
             return { ...img, metadata: row, status: 'READY' };
           } else {

@@ -25,6 +25,9 @@ export default function Queue({
       validFiles.push(f);
     }
 
+    // Create a map for O(1) lookups instead of O(n) Array.find
+    const csvDataMap = csvData ? new Map(csvData.map(r => [r.t_code, r])) : null;
+
     const newImages = validFiles.map(f => {
       const tCode = extractTCode(f.name);
 
@@ -32,8 +35,8 @@ export default function Queue({
       let metadata = {};
       let status = "PENDING";
 
-      if (tCode && csvData) {
-        const row = csvData.find(r => r.t_code === tCode);
+      if (tCode && csvDataMap) {
+        const row = csvDataMap.get(tCode);
         if (row) {
           metadata = row;
           status = "READY";
