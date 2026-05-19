@@ -107,7 +107,7 @@ export default function Queue({
             onClick={() => onImageClick(img.id)}
             style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px", borderBottom: "1px solid #222", background: "#000" }}
           >
-            <img src={img.preview} alt="" style={{ width: "60px", height: "60px", objectFit: "cover", border: "1px solid #4A0404" }} />
+            <img src={img.preview} alt="" loading="lazy" style={{ width: "60px", height: "60px", objectFit: "cover", border: "1px solid #4A0404" }} />
             <div style={{ flex: 1 }}>
               <div style={{ color: "#F5F0E8", fontSize: "14px", fontFamily: "'JetBrains Mono', monospace" }}>{img.tCode}</div>
             </div>
