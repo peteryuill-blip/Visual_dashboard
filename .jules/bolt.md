@@ -4,3 +4,6 @@
 ## 2026-05-19 - Eager Object URL decoding blocks UI with large batches
 **Learning:** In React list renders where the source is `URL.createObjectURL(file)`, a large batch of images (e.g., hundreds of files) causes the browser to eagerly decode all images simultaneously if `loading="lazy"` is missing. This spikes memory usage and freezes the main thread.
 **Action:** Always add `loading="lazy"` to `<img>` tags inside large list iterators, particularly when dealing with dynamically generated object URLs.
+## 2026-05-22 - Replacing O(N) Array map for single item updates
+**Learning:** In React state updates, updating a single item in a large array using `prev.map(item => item.id === targetId ? updatedItem : item)` executes a JS callback $N$ times. For large batches, this causes significant performance overhead compared to finding the index and replacing only that item using a native array clone (like spread syntax `[...prev]`).
+**Action:** Always prefer `findIndex` combined with spread syntax over full `.map()` iterations when updating a single item in a large list held in state.
