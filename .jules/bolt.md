@@ -4,3 +4,6 @@
 ## 2026-05-19 - Eager Object URL decoding blocks UI with large batches
 **Learning:** In React list renders where the source is `URL.createObjectURL(file)`, a large batch of images (e.g., hundreds of files) causes the browser to eagerly decode all images simultaneously if `loading="lazy"` is missing. This spikes memory usage and freezes the main thread.
 **Action:** Always add `loading="lazy"` to `<img>` tags inside large list iterators, particularly when dealing with dynamically generated object URLs.
+## 2026-05-20 - Global state timer causing unnecessary App re-renders
+**Learning:** Found a top-level `elapsedTime` state updated by a `setInterval` timer every second inside `App.jsx`. This caused the entire application to re-render every second during a long-running batch process, degrading performance.
+**Action:** Colocate highly active state (like timers or frequent progress updates) down into the specific leaf components that display them (e.g., `RunProgress.jsx`) to prevent widespread top-level re-renders.

@@ -1,11 +1,22 @@
+import { useState, useEffect } from 'react';
+
 export default function RunProgress({
   total,
   current,
   currentImage,
   onCancel,
-  stats,
-  elapsedTime
+  stats
 }) {
+  const [elapsedTime, setElapsedTime] = useState(0);
+
+  // ⚡ Bolt: Colocate timer state to prevent App.jsx full re-renders every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setElapsedTime(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const progress = (current / total) * 100;
 
   const formatTime = (seconds) => {
