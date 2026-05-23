@@ -31,8 +31,6 @@ export default function App() {
     outputs: [] // Store outputs for summary screen
   });
 
-  const [elapsedTime, setElapsedTime] = useState(0);
-
   const [reviewOutput, setReviewOutput] = useState(null);
 
   useEffect(() => {
@@ -57,16 +55,6 @@ export default function App() {
   useEffect(() => {
     loadPrompt();
   }, []);
-
-  useEffect(() => {
-    let timer;
-    if (screen === 'RUNNING') {
-      timer = setInterval(() => {
-        setElapsedTime(prev => prev + 1);
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [screen]);
 
   const handleCsvFile = async (file) => {
     try {
@@ -133,7 +121,6 @@ export default function App() {
     if (isRunningRef.current) return;
     
     setScreen('RUNNING');
-    setElapsedTime(0);
     setRunState({
       queue: batchImages,
       currentIndex: 0,
@@ -241,7 +228,6 @@ export default function App() {
       current={runState.currentIndex + 1}
       currentImage={runState.queue[runState.currentIndex]}
       stats={runState.stats}
-      elapsedTime={elapsedTime}
       onCancel={handleCancelRun}
     />;
   }
