@@ -4,3 +4,6 @@
 ## 2026-05-19 - Eager Object URL decoding blocks UI with large batches
 **Learning:** In React list renders where the source is `URL.createObjectURL(file)`, a large batch of images (e.g., hundreds of files) causes the browser to eagerly decode all images simultaneously if `loading="lazy"` is missing. This spikes memory usage and freezes the main thread.
 **Action:** Always add `loading="lazy"` to `<img>` tags inside large list iterators, particularly when dealing with dynamically generated object URLs.
+## 2026-05-25 - Expensive markdown parsing blocks UI during tab switches
+**Learning:** Found that switching tabs in `OutputReview.jsx` caused UI stutters because it was recalculating expensive regex matches and string operations on large (up to 4000 tokens) AI output strings on every render.
+**Action:** Wrap expensive string operations and regex matches on large text blobs with `useMemo`, using the text blob as the dependency, to prevent unnecessary recalculations during unrelated state updates (like switching tabs).
