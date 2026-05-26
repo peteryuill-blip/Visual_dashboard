@@ -4,3 +4,7 @@
 ## 2026-05-19 - Eager Object URL decoding blocks UI with large batches
 **Learning:** In React list renders where the source is `URL.createObjectURL(file)`, a large batch of images (e.g., hundreds of files) causes the browser to eagerly decode all images simultaneously if `loading="lazy"` is missing. This spikes memory usage and freezes the main thread.
 **Action:** Always add `loading="lazy"` to `<img>` tags inside large list iterators, particularly when dealing with dynamically generated object URLs.
+
+## 2026-05-20 - Invisible O(N^2) state updates block UI during large batches
+**Learning:** Inside an async for-loop processing a large array (like the `processBatch` loop over `batchImages`), calling React state updater functions like `setImages(prev => prev.map(...))` on every iteration causes a massive O(N^2) performance bottleneck. The main application thread freezes, and garbage collection struggles with massive object re-allocations, specifically since the UI representing the array state (`Queue`) isn't even actively mounted or visible.
+**Action:** Instead of updating the large array state within the loop, capture the final statuses in a `Map`, or batch update operations locally, and apply them with a single React state update after the long-running process completes.

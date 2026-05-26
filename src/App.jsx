@@ -148,13 +148,18 @@ export default function App() {
     let currentStats = { completed: 0, errors: 0, tokens: 0, cost: 0 };
     let currentOutputs = [];
 
+    // Map to track the final status of each processed image
+    // This avoids O(n^2) state updates of `setImages` in the main loop
+    const statusMap = new Map();
+
     for (let i = 0; i < batchImages.length; i++) {
       if (cancelRef.current) break;
 
       setRunState(prev => ({ ...prev, currentIndex: i }));
 
       const img = batchImages[i];
-      setImages(prev => prev.map(imgItem => imgItem.id === img.id ? { ...imgItem, status: 'RUNNING' } : imgItem));
+      // Note: We don't dispatch setImages with 'RUNNING' here because RunProgress doesn't read it,
+      // and it avoids full list re-renders on every tick.
 
       try {
         const briefingText = formatBriefing(1, img.tCode, img.metadata);
@@ -162,7 +167,7 @@ export default function App() {
 
         const newCost = calculateCost(result.usage);
 
-        setImages(prev => prev.map(imgItem => imgItem.id === img.id ? { ...imgItem, status: 'DONE' } : imgItem));
+        statusMap.set(img.id, 'DONE');
 
         if (autoDownload) {
           downloadMarkdown(result.text, img.tCode);
@@ -176,8 +181,7 @@ export default function App() {
 
         setRunState(prev => ({
           ...prev,
-          stats: { ...currentStats },
-          outputs: [...currentOutputs]
+          stats: { ...currentStats }
         }));
 
         await delay(1000); // Wait 1 sec before next call
@@ -191,7 +195,7 @@ export default function App() {
             return;
         }
 
-        setImages(prev => prev.map(imgItem => imgItem.id === img.id ? { ...imgItem, status: 'ERROR' } : imgItem));
+        statusMap.set(img.id, 'ERROR');
         currentStats.errors += 1;
         setRunState(prev => ({
           ...prev,
@@ -200,6 +204,18 @@ export default function App() {
         await delay(1000);
       }
     }
+
+    // ⚡ Bolt Optimization: Defer list state updates until the very end
+    // Applying status updates only once when batch is complete
+    setImages(prev => prev.map(imgItem => {
+        const finalStatus = statusMap.get(imgItem.id);
+        return finalStatus ? { ...imgItem, status: finalStatus } : imgItem;
+    }));
+
+    setRunState(prev => ({
+        ...prev,
+        outputs: currentOutputs
+    }));
 
     isRunningRef.current = false;
     setScreen('SUMMARY');
