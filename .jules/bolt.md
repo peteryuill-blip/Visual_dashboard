@@ -4,3 +4,6 @@
 ## 2026-05-19 - Eager Object URL decoding blocks UI with large batches
 **Learning:** In React list renders where the source is `URL.createObjectURL(file)`, a large batch of images (e.g., hundreds of files) causes the browser to eagerly decode all images simultaneously if `loading="lazy"` is missing. This spikes memory usage and freezes the main thread.
 **Action:** Always add `loading="lazy"` to `<img>` tags inside large list iterators, particularly when dealing with dynamically generated object URLs.
+## 2026-05-20 - Global state updates on keystrokes causing O(N) re-renders
+**Learning:** In React, updating global state arrays (like `images`) on every single keystroke triggers an O(N) array map operation and re-renders the entire application for every typed character, causing noticeable input lag.
+**Action:** Keep form state local to the component (like `ImageDetail`) and only push updates to global state on blur, navigation, or form submission, rather than `onChange`.

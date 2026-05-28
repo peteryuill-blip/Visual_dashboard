@@ -1,12 +1,15 @@
 import { useState } from 'react';
 
-export default function ImageDetail({ image, onUpdate, onProcess, onBack }) {
+export default function ImageDetail({ image, onProcess, onBack }) {
+  // ⚡ Bolt Optimization: Localize form state to prevent O(N) global array maps
+  // and full app re-renders on every single keystroke. Global state is only
+  // updated when the user commits their changes (Back or Process).
+  // Performance impact: Eliminates input typing lag on large image arrays.
   const [metadata, setMetadata] = useState(image.metadata || {});
 
   const handleChange = (key, value) => {
     const newMeta = { ...metadata, [key]: value };
     setMetadata(newMeta);
-    onUpdate(image.id, newMeta);
   };
 
   const fields = ["t_code", "week", "height_cm", "width_cm", "substrate", "ink", "date", "sub_type", "disposition"];
@@ -14,7 +17,7 @@ export default function ImageDetail({ image, onUpdate, onProcess, onBack }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "#080008", color: "#F5F0E8" }}>
       <div style={{ padding: "16px", display: "flex", alignItems: "center", borderBottom: "1px solid #4A0404" }}>
-        <button onClick={onBack} style={{ background: "transparent", border: "none", color: "#C5A059", fontSize: "24px", marginRight: "16px" }}>←</button>
+        <button onClick={() => onBack(metadata)} style={{ background: "transparent", border: "none", color: "#C5A059", fontSize: "24px", marginRight: "16px" }}>←</button>
         <h2 style={{ margin: 0, fontSize: "16px" }}>{image.tCode}</h2>
       </div>
 
@@ -47,7 +50,7 @@ export default function ImageDetail({ image, onUpdate, onProcess, onBack }) {
 
       <div style={{ padding: "16px", borderTop: "1px solid #4A0404" }}>
         <button
-          onClick={() => onProcess(image.id)}
+          onClick={() => onProcess(image.id, metadata)}
           style={{ width: "100%", background: "#6B1A24", color: "#F5F0E8", border: "none", padding: "16px", fontSize: "14px", fontWeight: "bold" }}
         >
           PROCESS THIS IMAGE

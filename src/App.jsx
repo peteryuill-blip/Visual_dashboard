@@ -229,9 +229,16 @@ export default function App() {
     const image = images.find(i => i.id === selectedImageId);
     return <ImageDetail
       image={image}
-      onUpdate={updateImageMetadata}
-      onProcess={() => processBatch([image])}
-      onBack={() => setScreen('QUEUE')}
+      onProcess={(id, meta) => {
+        // ⚡ Bolt: Global state sync deferred to process initiation
+        updateImageMetadata(id, meta);
+        processBatch([{ ...image, metadata: meta, status: 'READY' }]);
+      }}
+      onBack={(meta) => {
+        // ⚡ Bolt: Global state sync deferred to navigation
+        updateImageMetadata(image.id, meta);
+        setScreen('QUEUE');
+      }}
     />;
   }
 
