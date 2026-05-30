@@ -176,8 +176,9 @@ export default function App() {
 
         setRunState(prev => ({
           ...prev,
-          stats: { ...currentStats },
-          outputs: [...currentOutputs]
+          stats: { ...currentStats }
+          // ⚡ Bolt: Removed O(N) array spread `outputs: [...currentOutputs]` here.
+          // Outputs are only needed on the Summary screen.
         }));
 
         await delay(1000); // Wait 1 sec before next call
@@ -200,6 +201,9 @@ export default function App() {
         await delay(1000);
       }
     }
+
+    // ⚡ Bolt: Set outputs array once at the end
+    setRunState(prev => ({ ...prev, outputs: currentOutputs }));
 
     isRunningRef.current = false;
     setScreen('SUMMARY');
