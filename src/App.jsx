@@ -174,10 +174,14 @@ export default function App() {
 
         currentOutputs.push({ tCode: img.tCode, text: result.text, image: img });
 
+        // ⚡ Bolt Optimization: Throttle O(N^2) array spreading inside the batch processing loop.
+        // We update stats every time, but only commit outputs to state every 10 items or on the last item.
+        const shouldUpdateOutputs = (i + 1) % 10 === 0 || i === batchImages.length - 1;
+
         setRunState(prev => ({
           ...prev,
           stats: { ...currentStats },
-          outputs: [...currentOutputs]
+          ...(shouldUpdateOutputs && { outputs: [...currentOutputs] })
         }));
 
         await delay(1000); // Wait 1 sec before next call

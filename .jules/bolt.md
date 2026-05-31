@@ -4,3 +4,6 @@
 ## 2026-05-19 - Eager Object URL decoding blocks UI with large batches
 **Learning:** In React list renders where the source is `URL.createObjectURL(file)`, a large batch of images (e.g., hundreds of files) causes the browser to eagerly decode all images simultaneously if `loading="lazy"` is missing. This spikes memory usage and freezes the main thread.
 **Action:** Always add `loading="lazy"` to `<img>` tags inside large list iterators, particularly when dealing with dynamically generated object URLs.
+## 2026-05-20 - Avoid O(N^2) state updates in iterative batch processes
+**Learning:** Found a performance bottleneck where an array was being spread into React state (`[...currentOutputs]`) during *every iteration* of a long-running batch process. As the array grows, each spread operation takes longer, resulting in an O(N^2) complexity that degrades performance.
+**Action:** When accumulating results in a loop, avoid spreading the accumulator into React state inside the loop. Instead, gather all results in a local variable and commit the final array to state once the loop completes.
