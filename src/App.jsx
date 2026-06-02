@@ -93,12 +93,14 @@ export default function App() {
   };
 
   const updateImageMetadata = (id, metadata) => {
-    setImages(prev => prev.map(img => {
-      if (img.id === id) {
-        return { ...img, metadata, status: 'READY' };
-      }
-      return img;
-    }));
+    // ⚡ Bolt: Using findIndex instead of map to reduce O(n) callback overhead during large batch updates
+    setImages(prev => {
+      const idx = prev.findIndex(img => img.id === id);
+      if (idx === -1) return prev;
+      const newImages = [...prev];
+      newImages[idx] = { ...newImages[idx], metadata, status: 'READY' };
+      return newImages;
+    });
   };
 
   const downloadMarkdown = (content, tCode) => {
@@ -154,7 +156,14 @@ export default function App() {
       setRunState(prev => ({ ...prev, currentIndex: i }));
 
       const img = batchImages[i];
-      setImages(prev => prev.map(imgItem => imgItem.id === img.id ? { ...imgItem, status: 'RUNNING' } : imgItem));
+      // ⚡ Bolt: Using findIndex instead of map to reduce O(n) callback overhead during large batch updates
+      setImages(prev => {
+        const idx = prev.findIndex(imgItem => imgItem.id === img.id);
+        if (idx === -1) return prev;
+        const newImages = [...prev];
+        newImages[idx] = { ...newImages[idx], status: 'RUNNING' };
+        return newImages;
+      });
 
       try {
         const briefingText = formatBriefing(1, img.tCode, img.metadata);
@@ -162,7 +171,13 @@ export default function App() {
 
         const newCost = calculateCost(result.usage);
 
-        setImages(prev => prev.map(imgItem => imgItem.id === img.id ? { ...imgItem, status: 'DONE' } : imgItem));
+        setImages(prev => {
+          const idx = prev.findIndex(imgItem => imgItem.id === img.id);
+          if (idx === -1) return prev;
+          const newImages = [...prev];
+          newImages[idx] = { ...newImages[idx], status: 'DONE' };
+          return newImages;
+        });
 
         if (autoDownload) {
           downloadMarkdown(result.text, img.tCode);
@@ -191,7 +206,13 @@ export default function App() {
             return;
         }
 
-        setImages(prev => prev.map(imgItem => imgItem.id === img.id ? { ...imgItem, status: 'ERROR' } : imgItem));
+        setImages(prev => {
+          const idx = prev.findIndex(imgItem => imgItem.id === img.id);
+          if (idx === -1) return prev;
+          const newImages = [...prev];
+          newImages[idx] = { ...newImages[idx], status: 'ERROR' };
+          return newImages;
+        });
         currentStats.errors += 1;
         setRunState(prev => ({
           ...prev,
