@@ -1,18 +1,27 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 export default function OutputReview({ outputText, image, onNext, onReRun, onDownload }) {
   const [tab, setTab] = useState('PROSE');
 
-  // Basic extraction based on markdown headers. Actual parsing might be complex but we can just do simple string splits or just show raw.
-  // The prompt usually has a JSON block. Let's find it.
-  const jsonMatch = outputText.match(/```json\n([\s\S]*?)\n```/);
-  const jsonContent = jsonMatch ? jsonMatch[1] : "No JSON found.";
+  // ⚡ Bolt: Memoize parsed content to avoid running regexes and substring matching on every tab switch
+  const { jsonContent, websiteContent, proseContent } = useMemo(() => {
+    // Basic extraction based on markdown headers. Actual parsing might be complex but we can just do simple string splits or just show raw.
+    // The prompt usually has a JSON block. Let's find it.
+    const jsonMatch = outputText.match(/```json\n([\s\S]*?)\n```/);
+    const parsedJsonContent = jsonMatch ? jsonMatch[1] : "No JSON found.";
 
-  // Let's just do a rough split for website
-  const websiteContent = outputText.includes('The Mark') ? outputText.substring(outputText.indexOf('The Mark')) : "ARCHIVE_ONLY - No website content generated";
+    // Let's just do a rough split for website
+    const parsedWebsiteContent = outputText.includes('The Mark') ? outputText.substring(outputText.indexOf('The Mark')) : "ARCHIVE_ONLY - No website content generated";
 
-  // Raw prose is everything without json
-  const proseContent = outputText.replace(/```json\n[\s\S]*?\n```/, '');
+    // Raw prose is everything without json
+    const parsedProseContent = outputText.replace(/```json\n[\s\S]*?\n```/, '');
+
+    return {
+      jsonContent: parsedJsonContent,
+      websiteContent: parsedWebsiteContent,
+      proseContent: parsedProseContent
+    };
+  }, [outputText]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "#080008", color: "#F5F0E8" }}>

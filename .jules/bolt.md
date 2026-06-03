@@ -4,3 +4,6 @@
 ## 2026-05-19 - Eager Object URL decoding blocks UI with large batches
 **Learning:** In React list renders where the source is `URL.createObjectURL(file)`, a large batch of images (e.g., hundreds of files) causes the browser to eagerly decode all images simultaneously if `loading="lazy"` is missing. This spikes memory usage and freezes the main thread.
 **Action:** Always add `loading="lazy"` to `<img>` tags inside large list iterators, particularly when dealing with dynamically generated object URLs.
+## 2026-06-03 - Memoizing regex parsing on tab switches
+**Learning:** Found that string parsing and regex matching on `outputText` was happening on every render in `OutputReview.jsx`, triggered by simple tab state switches.
+**Action:** Wrap expensive text processing and regex logic that depends on static props with `useMemo` so it doesn't recalculate when local UI state (like active tabs) changes.
