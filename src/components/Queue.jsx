@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { extractTCode } from '../lib/csv';
 
 export default function Queue({
@@ -10,23 +11,24 @@ export default function Queue({
   onImageClick,
   onOpenSettings
 }) {
+  // Memoize the map to prevent O(N) recreation on every image selection or re-render
+  const csvDataMap = useMemo(() => {
+    return csvData ? new Map(csvData.map(r => [r.t_code, r])) : null;
+  }, [csvData]);
+
   const handleImagesSelect = (e) => {
     const files = Array.from(e.target.files);
 
-    // File size validation logic
-    const validFiles = [];
-    for (const f of files) {
-      if (f.size > 5 * 1024 * 1024) { // > 5MB
-        const proceed = window.confirm(`File ${f.name} is larger than 5MB. Proceed anyway?`);
-        if (!proceed) {
-          continue; // Skip this file
-        }
-      }
-      validFiles.push(f);
-    }
+    // Batch file size validation to avoid O(N) main-thread blocking dialogs
+    const oversizedFiles = files.filter(f => f.size > 5 * 1024 * 1024);
+    let validFiles = files;
 
-    // Create a map for O(1) lookups instead of O(n) Array.find
-    const csvDataMap = csvData ? new Map(csvData.map(r => [r.t_code, r])) : null;
+    if (oversizedFiles.length > 0) {
+      const proceed = window.confirm(`${oversizedFiles.length} file(s) are larger than 5MB. Proceed with them anyway?`);
+      if (!proceed) {
+        validFiles = files.filter(f => f.size <= 5 * 1024 * 1024);
+      }
+    }
 
     const newImages = validFiles.map(f => {
       const tCode = extractTCode(f.name);

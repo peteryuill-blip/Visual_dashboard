@@ -4,3 +4,6 @@
 ## 2026-05-19 - Eager Object URL decoding blocks UI with large batches
 **Learning:** In React list renders where the source is `URL.createObjectURL(file)`, a large batch of images (e.g., hundreds of files) causes the browser to eagerly decode all images simultaneously if `loading="lazy"` is missing. This spikes memory usage and freezes the main thread.
 **Action:** Always add `loading="lazy"` to `<img>` tags inside large list iterators, particularly when dealing with dynamically generated object URLs.
+## 2026-05-20 - Synchronous window.confirm dialogs in file processing loops block the main thread
+**Learning:** Found an O(N) blocking operation where a synchronous `window.confirm` was called for every file larger than 5MB inside a file processing loop (`handleImagesSelect`). This freezes the UI main thread and requires the user to individually dismiss each dialog when uploading a large batch of heavy files.
+**Action:** When performing validations on file sizes within loops, filter the invalid/oversized files into a separate array, display a single summary dialog outside the loop, and apply the logic conditionally.
