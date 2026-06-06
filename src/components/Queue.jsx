@@ -1,4 +1,22 @@
+import { memo } from 'react';
 import { extractTCode } from '../lib/csv';
+
+// Bolt Optimization: Extract list item and memoize it.
+// Prevents O(N^2) DOM reconciliations when an individual item's status updates during batch processing.
+const ImageRow = memo(({ img, onImageClick, statusColor }) => (
+  <div
+    onClick={() => onImageClick(img.id)}
+    style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px", borderBottom: "1px solid #222", background: "#000", cursor: "pointer" }}
+  >
+    <img src={img.preview} alt="" loading="lazy" style={{ width: "60px", height: "60px", objectFit: "cover", border: "1px solid #4A0404" }} />
+    <div style={{ flex: 1 }}>
+      <div style={{ color: "#F5F0E8", fontSize: "14px", fontFamily: "'JetBrains Mono', monospace" }}>{img.tCode}</div>
+    </div>
+    <div style={{ color: statusColor, fontSize: "10px", fontWeight: "bold" }}>
+      {img.status}
+    </div>
+  </div>
+));
 
 export default function Queue({
   images,
@@ -102,19 +120,12 @@ export default function Queue({
 
       <div style={{ flex: 1, overflowY: "auto", borderTop: "1px solid #4A0404", paddingTop: "16px" }}>
         {images.map(img => (
-          <div
+          <ImageRow
             key={img.id}
-            onClick={() => onImageClick(img.id)}
-            style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px", borderBottom: "1px solid #222", background: "#000" }}
-          >
-            <img src={img.preview} alt="" loading="lazy" style={{ width: "60px", height: "60px", objectFit: "cover", border: "1px solid #4A0404" }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ color: "#F5F0E8", fontSize: "14px", fontFamily: "'JetBrains Mono', monospace" }}>{img.tCode}</div>
-            </div>
-            <div style={{ color: getStatusColor(img.status), fontSize: "10px", fontWeight: "bold" }}>
-              {img.status}
-            </div>
-          </div>
+            img={img}
+            onImageClick={onImageClick}
+            statusColor={getStatusColor(img.status)}
+          />
         ))}
       </div>
 
