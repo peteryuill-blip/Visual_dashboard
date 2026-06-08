@@ -4,3 +4,6 @@
 ## 2026-05-19 - Eager Object URL decoding blocks UI with large batches
 **Learning:** In React list renders where the source is `URL.createObjectURL(file)`, a large batch of images (e.g., hundreds of files) causes the browser to eagerly decode all images simultaneously if `loading="lazy"` is missing. This spikes memory usage and freezes the main thread.
 **Action:** Always add `loading="lazy"` to `<img>` tags inside large list iterators, particularly when dealing with dynamically generated object URLs.
+## 2026-06-08 - Use useRef to stabilize callback props locally to enable React.memo
+**Learning:** Bypassing an unstabilized callback prop by using a custom comparator in `React.memo` that ignores the function creates a severe risk of stale closures if that callback ever relies on changing parent state. Instead of skipping the check, a safer localized fix is to wrap the unstabilized callback in a `useRef` that updates on every render, and pass down a stable wrapper function via `useCallback`. This provides the benefits of `React.memo` while ensuring the latest callback is always executed.
+**Action:** When working with large lists and unstabilized parent callbacks, avoid custom `React.memo` comparators that ignore functions. Instead, stabilize the callback locally inside the list parent component using the `useRef` + `useCallback` pattern.

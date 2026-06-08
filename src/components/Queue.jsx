@@ -1,4 +1,20 @@
+import React, { useRef, useCallback, useEffect } from 'react';
 import { extractTCode } from '../lib/csv';
+
+const QueueItem = React.memo(({ img, onImageClick, statusColor }) => (
+  <div
+    onClick={() => onImageClick(img.id)}
+    style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px", borderBottom: "1px solid #222", background: "#000" }}
+  >
+    <img src={img.preview} alt="" loading="lazy" style={{ width: "60px", height: "60px", objectFit: "cover", border: "1px solid #4A0404" }} />
+    <div style={{ flex: 1 }}>
+      <div style={{ color: "#F5F0E8", fontSize: "14px", fontFamily: "'JetBrains Mono', monospace" }}>{img.tCode}</div>
+    </div>
+    <div style={{ color: statusColor, fontSize: "10px", fontWeight: "bold" }}>
+      {img.status}
+    </div>
+  </div>
+));
 
 export default function Queue({
   images,
@@ -10,6 +26,16 @@ export default function Queue({
   onImageClick,
   onOpenSettings
 }) {
+  // Stabilize the onImageClick callback to avoid invalidating memoized children
+  const onImageClickRef = useRef(onImageClick);
+  useEffect(() => {
+    onImageClickRef.current = onImageClick;
+  });
+
+  const stableOnImageClick = useCallback((id) => {
+    onImageClickRef.current(id);
+  }, []);
+
   const handleImagesSelect = (e) => {
     const files = Array.from(e.target.files);
 
@@ -102,19 +128,12 @@ export default function Queue({
 
       <div style={{ flex: 1, overflowY: "auto", borderTop: "1px solid #4A0404", paddingTop: "16px" }}>
         {images.map(img => (
-          <div
+          <QueueItem
             key={img.id}
-            onClick={() => onImageClick(img.id)}
-            style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px", borderBottom: "1px solid #222", background: "#000" }}
-          >
-            <img src={img.preview} alt="" loading="lazy" style={{ width: "60px", height: "60px", objectFit: "cover", border: "1px solid #4A0404" }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ color: "#F5F0E8", fontSize: "14px", fontFamily: "'JetBrains Mono', monospace" }}>{img.tCode}</div>
-            </div>
-            <div style={{ color: getStatusColor(img.status), fontSize: "10px", fontWeight: "bold" }}>
-              {img.status}
-            </div>
-          </div>
+            img={img}
+            onImageClick={stableOnImageClick}
+            statusColor={getStatusColor(img.status)}
+          />
         ))}
       </div>
 
