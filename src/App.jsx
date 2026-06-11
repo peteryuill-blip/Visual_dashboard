@@ -93,12 +93,15 @@ export default function App() {
   };
 
   const updateImageMetadata = (id, metadata) => {
-    setImages(prev => prev.map(img => {
-      if (img.id === id) {
-        return { ...img, metadata, status: 'READY' };
-      }
-      return img;
-    }));
+    setImages(prev => {
+      // ⚡ Bolt Performance Optimization: Use findIndex instead of map for single item updates
+      // Reduces O(n) object creations to just 1 for a large list
+      const idx = prev.findIndex(img => img.id === id);
+      if (idx === -1) return prev;
+      const newImages = [...prev];
+      newImages[idx] = { ...newImages[idx], metadata, status: 'READY' };
+      return newImages;
+    });
   };
 
   const downloadMarkdown = (content, tCode) => {
@@ -154,7 +157,14 @@ export default function App() {
       setRunState(prev => ({ ...prev, currentIndex: i }));
 
       const img = batchImages[i];
-      setImages(prev => prev.map(imgItem => imgItem.id === img.id ? { ...imgItem, status: 'RUNNING' } : imgItem));
+      // ⚡ Bolt Performance Optimization: Use findIndex instead of map for single item updates
+      setImages(prev => {
+        const idx = prev.findIndex(imgItem => imgItem.id === img.id);
+        if (idx === -1) return prev;
+        const newImages = [...prev];
+        newImages[idx] = { ...newImages[idx], status: 'RUNNING' };
+        return newImages;
+      });
 
       try {
         const briefingText = formatBriefing(1, img.tCode, img.metadata);
@@ -162,7 +172,14 @@ export default function App() {
 
         const newCost = calculateCost(result.usage);
 
-        setImages(prev => prev.map(imgItem => imgItem.id === img.id ? { ...imgItem, status: 'DONE' } : imgItem));
+        // ⚡ Bolt Performance Optimization: Use findIndex instead of map for single item updates
+        setImages(prev => {
+          const idx = prev.findIndex(imgItem => imgItem.id === img.id);
+          if (idx === -1) return prev;
+          const newImages = [...prev];
+          newImages[idx] = { ...newImages[idx], status: 'DONE' };
+          return newImages;
+        });
 
         if (autoDownload) {
           downloadMarkdown(result.text, img.tCode);
@@ -191,7 +208,14 @@ export default function App() {
             return;
         }
 
-        setImages(prev => prev.map(imgItem => imgItem.id === img.id ? { ...imgItem, status: 'ERROR' } : imgItem));
+        // ⚡ Bolt Performance Optimization: Use findIndex instead of map for single item updates
+        setImages(prev => {
+          const idx = prev.findIndex(imgItem => imgItem.id === img.id);
+          if (idx === -1) return prev;
+          const newImages = [...prev];
+          newImages[idx] = { ...newImages[idx], status: 'ERROR' };
+          return newImages;
+        });
         currentStats.errors += 1;
         setRunState(prev => ({
           ...prev,
