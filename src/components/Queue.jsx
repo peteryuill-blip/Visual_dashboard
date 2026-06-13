@@ -1,4 +1,21 @@
 import { extractTCode } from '../lib/csv';
+import React, { useCallback } from 'react';
+
+// Extract list item into React.memo to prevent O(n) rendering bottleneck when queue changes
+const QueueItem = React.memo(({ img, onClick, statusColor }) => (
+  <div
+    onClick={() => onClick(img.id)}
+    style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px", borderBottom: "1px solid #222", background: "#000" }}
+  >
+    <img src={img.preview} alt="" loading="lazy" style={{ width: "60px", height: "60px", objectFit: "cover", border: "1px solid #4A0404" }} />
+    <div style={{ flex: 1 }}>
+      <div style={{ color: "#F5F0E8", fontSize: "14px", fontFamily: "'JetBrains Mono', monospace" }}>{img.tCode}</div>
+    </div>
+    <div style={{ color: statusColor, fontSize: "10px", fontWeight: "bold" }}>
+      {img.status}
+    </div>
+  </div>
+));
 
 export default function Queue({
   images,
@@ -102,19 +119,12 @@ export default function Queue({
 
       <div style={{ flex: 1, overflowY: "auto", borderTop: "1px solid #4A0404", paddingTop: "16px" }}>
         {images.map(img => (
-          <div
+          <QueueItem
             key={img.id}
-            onClick={() => onImageClick(img.id)}
-            style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px", borderBottom: "1px solid #222", background: "#000" }}
-          >
-            <img src={img.preview} alt="" loading="lazy" style={{ width: "60px", height: "60px", objectFit: "cover", border: "1px solid #4A0404" }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ color: "#F5F0E8", fontSize: "14px", fontFamily: "'JetBrains Mono', monospace" }}>{img.tCode}</div>
-            </div>
-            <div style={{ color: getStatusColor(img.status), fontSize: "10px", fontWeight: "bold" }}>
-              {img.status}
-            </div>
-          </div>
+            img={img}
+            onClick={onImageClick}
+            statusColor={getStatusColor(img.status)}
+          />
         ))}
       </div>
 
