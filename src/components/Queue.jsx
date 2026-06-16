@@ -1,4 +1,34 @@
 import { extractTCode } from '../lib/csv';
+import { memo } from 'react';
+
+const getStatusColor = (status) => {
+  switch(status) {
+    case 'PENDING': return '#888';
+    case 'READY': return '#C5A059';
+    case 'RUNNING': return '#6B1A24';
+    case 'DONE': return '#4A7C6F';
+    case 'ERROR': return '#ff4444';
+    case 'NO METADATA': return '#4A0404';
+    default: return '#888';
+  }
+};
+
+// Optimization: Wrap QueueItem in React.memo() to prevent unnecessary O(n) re-renders
+// Performance impact: Eliminates UI lag and DOM rebuilding whenever images are loaded or updated.
+const QueueItem = memo(({ img, onImageClick }) => (
+  <div
+    onClick={() => onImageClick(img.id)}
+    style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px", borderBottom: "1px solid #222", background: "#000" }}
+  >
+    <img src={img.preview} alt="" loading="lazy" style={{ width: "60px", height: "60px", objectFit: "cover", border: "1px solid #4A0404" }} />
+    <div style={{ flex: 1 }}>
+      <div style={{ color: "#F5F0E8", fontSize: "14px", fontFamily: "'JetBrains Mono', monospace" }}>{img.tCode}</div>
+    </div>
+    <div style={{ color: getStatusColor(img.status), fontSize: "10px", fontWeight: "bold" }}>
+      {img.status}
+    </div>
+  </div>
+));
 
 export default function Queue({
   images,
@@ -69,18 +99,6 @@ export default function Queue({
     setCsvData(file); // Parent handles parsing
   };
 
-  const getStatusColor = (status) => {
-    switch(status) {
-      case 'PENDING': return '#888';
-      case 'READY': return '#C5A059';
-      case 'RUNNING': return '#6B1A24';
-      case 'DONE': return '#4A7C6F';
-      case 'ERROR': return '#ff4444';
-      case 'NO METADATA': return '#4A0404';
-      default: return '#888';
-    }
-  };
-
   return (
     <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: "16px", height: "100vh", boxSizing: "border-box" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -102,19 +120,7 @@ export default function Queue({
 
       <div style={{ flex: 1, overflowY: "auto", borderTop: "1px solid #4A0404", paddingTop: "16px" }}>
         {images.map(img => (
-          <div
-            key={img.id}
-            onClick={() => onImageClick(img.id)}
-            style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px", borderBottom: "1px solid #222", background: "#000" }}
-          >
-            <img src={img.preview} alt="" loading="lazy" style={{ width: "60px", height: "60px", objectFit: "cover", border: "1px solid #4A0404" }} />
-            <div style={{ flex: 1 }}>
-              <div style={{ color: "#F5F0E8", fontSize: "14px", fontFamily: "'JetBrains Mono', monospace" }}>{img.tCode}</div>
-            </div>
-            <div style={{ color: getStatusColor(img.status), fontSize: "10px", fontWeight: "bold" }}>
-              {img.status}
-            </div>
-          </div>
+          <QueueItem key={img.id} img={img} onImageClick={onImageClick} />
         ))}
       </div>
 

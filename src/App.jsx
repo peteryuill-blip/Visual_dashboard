@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Queue from './components/Queue';
 import Settings from './components/Settings';
 import ImageDetail from './components/ImageDetail';
@@ -215,6 +215,14 @@ export default function App() {
     setScreen('REVIEW');
   };
 
+  // Optimization: wrap the onImageClick handler in useCallback with an empty dependency array.
+  // This provides a stable reference that avoids triggering re-renders in the memoized QueueItem.
+  // Performance impact: Large lists will no longer suffer from O(N) array re-renders just because the parent components update state.
+  const handleImageClick = useCallback((id) => {
+    setSelectedImageId(id);
+    setScreen('DETAIL');
+  }, []);
+
   if (screen === 'SETTINGS') {
     return <Settings
       apiKey={apiKey} setApiKey={setApiKey}
@@ -276,7 +284,7 @@ export default function App() {
       setCsvData={handleCsvFile}
       canRun={canRun && imagesToRun.length > 0}
       onRun={() => processBatch(imagesToRun)}
-      onImageClick={(id) => { setSelectedImageId(id); setScreen('DETAIL'); }}
+      onImageClick={handleImageClick}
       onOpenSettings={() => setScreen('SETTINGS')}
     />
   );
