@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Queue from './components/Queue';
 import Settings from './components/Settings';
 import ImageDetail from './components/ImageDetail';
@@ -268,6 +268,15 @@ export default function App() {
   const canRun = images.length > 0 && apiKey && (csvData || manualMode);
   const imagesToRun = images.filter(i => manualMode || i.status === 'READY');
 
+  // Memoized handlers to prevent unnecessary re-renders of Queue items
+  const handleImageClick = useCallback((id) => {
+    setSelectedImageId(id);
+    setScreen('DETAIL');
+  }, []);
+
+  const handleOpenSettings = useCallback(() => setScreen('SETTINGS'), []);
+  const handleProcessBatch = useCallback(() => processBatch(imagesToRun), [imagesToRun]);
+
   return (
     <Queue
       images={images}
@@ -275,9 +284,9 @@ export default function App() {
       csvData={csvData}
       setCsvData={handleCsvFile}
       canRun={canRun && imagesToRun.length > 0}
-      onRun={() => processBatch(imagesToRun)}
-      onImageClick={(id) => { setSelectedImageId(id); setScreen('DETAIL'); }}
-      onOpenSettings={() => setScreen('SETTINGS')}
+      onRun={handleProcessBatch}
+      onImageClick={handleImageClick}
+      onOpenSettings={handleOpenSettings}
     />
   );
 }
