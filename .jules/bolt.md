@@ -4,3 +4,6 @@
 ## 2026-05-19 - Eager Object URL decoding blocks UI with large batches
 **Learning:** In React list renders where the source is `URL.createObjectURL(file)`, a large batch of images (e.g., hundreds of files) causes the browser to eagerly decode all images simultaneously if `loading="lazy"` is missing. This spikes memory usage and freezes the main thread.
 **Action:** Always add `loading="lazy"` to `<img>` tags inside large list iterators, particularly when dealing with dynamically generated object URLs.
+## 2026-06-19 - React Memoization and Stable Callbacks
+**Learning:** Found a performance bottleneck where inline callbacks inside list `.map()` rendering in React components (`App.jsx` and `Queue.jsx`) caused unnecessary re-renders of the entire list whenever a state update occurred.
+**Action:** Extract large list items into `React.memo` components, stabilize callbacks passed as props using `useCallback`, and move pure utility functions to the module scope to improve rendering performance without sacrificing readability.
