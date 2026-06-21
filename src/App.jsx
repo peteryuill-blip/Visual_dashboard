@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Queue from './components/Queue';
 import Settings from './components/Settings';
 import ImageDetail from './components/ImageDetail';
@@ -124,6 +124,14 @@ export default function App() {
 
   const isRunningRef = useRef(false);
   const cancelRef = useRef(false);
+
+  // ⚡ Bolt: Wrapped the onImageClick handler in useCallback to provide a stable reference.
+  // This ensures the React.memo optimization in Queue's ImageItem component works correctly,
+  // preventing all list items from re-rendering when App state changes.
+  const handleImageClick = useCallback((id) => {
+    setSelectedImageId(id);
+    setScreen('DETAIL');
+  }, []);
 
   const processBatch = async (batchImages) => {
     if (!systemPrompt) {
@@ -276,7 +284,7 @@ export default function App() {
       setCsvData={handleCsvFile}
       canRun={canRun && imagesToRun.length > 0}
       onRun={() => processBatch(imagesToRun)}
-      onImageClick={(id) => { setSelectedImageId(id); setScreen('DETAIL'); }}
+      onImageClick={handleImageClick}
       onOpenSettings={() => setScreen('SETTINGS')}
     />
   );
