@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Queue from './components/Queue';
 import Settings from './components/Settings';
 import ImageDetail from './components/ImageDetail';
@@ -210,10 +210,19 @@ export default function App() {
     setRunState(prev => ({ ...prev, cancelRequested: true }));
   };
 
-  const viewOutputReview = (output) => {
+  // Optimization: Wrap with useCallback to provide a stable reference
+  // and prevent unnecessary re-renders of the memoized SummaryItem components
+  const viewOutputReview = useCallback((output) => {
     setReviewOutput(output);
     setScreen('REVIEW');
-  };
+  }, []);
+
+  // Optimization: Wrap with useCallback to provide a stable reference
+  // and prevent unnecessary re-renders of the memoized QueueItem components
+  const handleImageClick = useCallback((id) => {
+    setSelectedImageId(id);
+    setScreen('DETAIL');
+  }, []);
 
   if (screen === 'SETTINGS') {
     return <Settings
@@ -276,7 +285,7 @@ export default function App() {
       setCsvData={handleCsvFile}
       canRun={canRun && imagesToRun.length > 0}
       onRun={() => processBatch(imagesToRun)}
-      onImageClick={(id) => { setSelectedImageId(id); setScreen('DETAIL'); }}
+      onImageClick={handleImageClick}
       onOpenSettings={() => setScreen('SETTINGS')}
     />
   );
