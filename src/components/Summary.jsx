@@ -1,16 +1,46 @@
+import { memo } from 'react';
+
+// Optimization: Moved stateless utility function outside the component
+// to prevent it from being redefined on every render
+const downloadMarkdown = (text, tCode) => {
+  const blob = new Blob([text], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${tCode}_V6.1_analysis.md`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+// Optimization: Extract list item into a React.memo component
+// to prevent massive re-renders when the parent's state changes
+const SummaryItem = memo(({ out, onViewOutput }) => (
+  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px", borderBottom: "1px solid #222" }}>
+    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "14px" }}>{out.tCode}</span>
+    <div style={{ display: "flex", gap: "8px" }}>
+      <button
+        onClick={() => onViewOutput(out)}
+        style={{ background: "transparent", color: "#C5A059", border: "1px solid #C5A059", padding: "6px 12px", fontSize: "10px" }}
+      >
+        VIEW
+      </button>
+      <button
+        onClick={() => downloadMarkdown(out.text, out.tCode)}
+        style={{ background: "transparent", color: "#4A7C6F", border: "1px solid #4A7C6F", padding: "6px 12px", fontSize: "10px" }}
+      >
+        DOWNLOAD
+      </button>
+    </div>
+  </div>
+));
+
 export default function Summary({ stats, outputs, onBack, onViewOutput }) {
   const downloadAll = () => {
     // Basic download all by clicking links or simply instructions
     outputs.forEach(output => {
-      const blob = new Blob([output.text], { type: 'text/markdown' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${output.tCode}_V6.1_analysis.md`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      downloadMarkdown(output.text, output.tCode);
     });
   };
 
@@ -42,33 +72,7 @@ export default function Summary({ stats, outputs, onBack, onViewOutput }) {
       <div style={{ flex: 1, overflowY: "auto", borderTop: "1px solid #4A0404", paddingTop: "16px", marginBottom: "16px" }}>
         <h3 style={{ fontSize: "14px", color: "#C5A059", margin: "0 0 12px 0" }}>OUTPUTS</h3>
         {outputs.map((out, i) => (
-          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px", borderBottom: "1px solid #222" }}>
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "14px" }}>{out.tCode}</span>
-            <div style={{ display: "flex", gap: "8px" }}>
-                <button
-                onClick={() => onViewOutput(out)}
-                style={{ background: "transparent", color: "#C5A059", border: "1px solid #C5A059", padding: "6px 12px", fontSize: "10px" }}
-                >
-                VIEW
-                </button>
-                <button
-                onClick={() => {
-                    const blob = new Blob([out.text], { type: 'text/markdown' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `${out.tCode}_V6.1_analysis.md`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                }}
-                style={{ background: "transparent", color: "#4A7C6F", border: "1px solid #4A7C6F", padding: "6px 12px", fontSize: "10px" }}
-                >
-                DOWNLOAD
-                </button>
-            </div>
-          </div>
+          <SummaryItem key={i} out={out} onViewOutput={onViewOutput} />
         ))}
       </div>
 
