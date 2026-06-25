@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Queue from './components/Queue';
 import Settings from './components/Settings';
 import ImageDetail from './components/ImageDetail';
@@ -266,7 +266,12 @@ export default function App() {
   }
 
   const canRun = images.length > 0 && apiKey && (csvData || manualMode);
-  const imagesToRun = images.filter(i => manualMode || i.status === 'READY');
+  const imagesToRun = useMemo(() => images.filter(i => manualMode || i.status === 'READY'), [images, manualMode]);
+
+  // Memoize callbacks for performance
+  const handleRun = useCallback(() => processBatch(imagesToRun), [imagesToRun]);
+  const handleImageClick = useCallback((id) => { setSelectedImageId(id); setScreen('DETAIL'); }, []);
+  const handleOpenSettings = useCallback(() => setScreen('SETTINGS'), []);
 
   return (
     <Queue
@@ -275,9 +280,9 @@ export default function App() {
       csvData={csvData}
       setCsvData={handleCsvFile}
       canRun={canRun && imagesToRun.length > 0}
-      onRun={() => processBatch(imagesToRun)}
-      onImageClick={(id) => { setSelectedImageId(id); setScreen('DETAIL'); }}
-      onOpenSettings={() => setScreen('SETTINGS')}
+      onRun={handleRun}
+      onImageClick={handleImageClick}
+      onOpenSettings={handleOpenSettings}
     />
   );
 }
