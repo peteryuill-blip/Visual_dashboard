@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Queue from './components/Queue';
 import Settings from './components/Settings';
 import ImageDetail from './components/ImageDetail';
@@ -215,6 +215,14 @@ export default function App() {
     setScreen('REVIEW');
   };
 
+  // ⚡ Bolt Optimization: Wrapped in useCallback to provide a stable reference
+  // Impact: Prevents the child `QueueItem` (React.memo) components from unnecessarily re-rendering
+  // every time App.jsx state changes (e.g., during elapsed time tick or batch processing).
+  const handleImageClick = useCallback((id) => {
+    setSelectedImageId(id);
+    setScreen('DETAIL');
+  }, []);
+
   if (screen === 'SETTINGS') {
     return <Settings
       apiKey={apiKey} setApiKey={setApiKey}
@@ -276,7 +284,7 @@ export default function App() {
       setCsvData={handleCsvFile}
       canRun={canRun && imagesToRun.length > 0}
       onRun={() => processBatch(imagesToRun)}
-      onImageClick={(id) => { setSelectedImageId(id); setScreen('DETAIL'); }}
+      onImageClick={handleImageClick}
       onOpenSettings={() => setScreen('SETTINGS')}
     />
   );
