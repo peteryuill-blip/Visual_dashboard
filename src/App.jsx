@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Queue from './components/Queue';
 import Settings from './components/Settings';
 import ImageDetail from './components/ImageDetail';
@@ -215,6 +215,14 @@ export default function App() {
     setScreen('REVIEW');
   };
 
+  // ⚡ Bolt: Wrapped handleImageClick in useCallback to maintain a stable function reference.
+  // This prevents the child Queue component from re-rendering massively when App state changes.
+  // Expected impact: Eliminates O(N) re-renders across the image list during queue updates, reducing memory and CPU usage on large batches.
+  const handleImageClick = useCallback((id) => {
+    setSelectedImageId(id);
+    setScreen('DETAIL');
+  }, []);
+
   if (screen === 'SETTINGS') {
     return <Settings
       apiKey={apiKey} setApiKey={setApiKey}
@@ -276,7 +284,7 @@ export default function App() {
       setCsvData={handleCsvFile}
       canRun={canRun && imagesToRun.length > 0}
       onRun={() => processBatch(imagesToRun)}
-      onImageClick={(id) => { setSelectedImageId(id); setScreen('DETAIL'); }}
+      onImageClick={handleImageClick}
       onOpenSettings={() => setScreen('SETTINGS')}
     />
   );
